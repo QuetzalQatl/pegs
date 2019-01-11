@@ -1,0 +1,5 @@
+default
+large
+nordic
+block
+classic
