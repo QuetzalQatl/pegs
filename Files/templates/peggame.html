@@ -1,0 +1,339 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
+    <title>Peg Game</title>
+    <!--- Link to the last version of BabylonJS --->
+    <script src="/babylon.js"></script>
+    <style>
+        html, body {
+            overflow: hidden;
+            width   : 100%;
+            height  : 100%;
+            margin  : 0;
+            padding : 0;
+        }
+
+        #renderCanvas {
+            width   : 100%;
+            height  : 100%;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <button id="buttonLeft" style="position: absolute; right: 10px; top: 20px;"></button>
+    <button id="buttonTime" style="position: absolute; right: 10px; top: 60px;"></button>
+    <button id="buttonStop" style="position: absolute; right: 10px; top: 100px;">Stop</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script>
+%%VARS%%
+		var gameState=1; // 1= jumping from, 2=jumping to
+	    var socket = io.connect('/peglobbie');
+
+		function emit(path, params) {
+			console.log('socket emit');
+			console.log(path, params);
+			socket.emit(path, params);
+		}
+		
+        window.addEventListener('DOMContentLoaded', function(){
+        	
+        	var startDate = new Date();
+        	
+			var canvas = document.getElementById('renderCanvas');
+			var engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+			var createScene = function () {
+	
+    var scene = new BABYLON.Scene(engine);
+    var light = new BABYLON.PointLight("Omni", new BABYLON.Vector3(-60, 60, 80), scene);
+    var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI/2.0, Math.PI/2.0, 150.0, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+
+	var matRed = new BABYLON.StandardMaterial("MatRed", scene);
+	matRed.diffuseColor = new BABYLON.Color3(1, 0, 0);
+	matRed.alpha=0;
+	var matWhite = new BABYLON.StandardMaterial("MatWhite", scene);
+	matWhite.diffuseColor = new BABYLON.Color3(1, 1, 1);
+	var matGrey = new BABYLON.StandardMaterial("MatGrey", scene);
+	matGrey.diffuseColor = new BABYLON.Color3(0.14, 0.28, 0.2);
+	matGrey.alpha=0.66;
+	
+	var matBlack = new BABYLON.StandardMaterial("MatBlack", scene);
+	matBlack.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	matBlack.alpha=0.66;
+	
+	var fromPos;
+	var boardPiecesLeft;
+	var boardArrayReset=boardArray;
+	
+	function setAllowed() {
+		document.getElementById('buttonLeft').textContent=''+getPiecesLeft()+' left';
+		
+		var checkList
+		if (boardIsHexagon=='False') {
+			checkList=[[[10,0],[20,0]], [[-10,0],[-20,0]], [[0,10],[0,20]], [[0,-10],[0,-20]]];
+		}else{
+			checkList=[[[10,0],[20,0]], [[-10,0],[-20,0]], [[5,10],[10,20]], [[5,-10],[10,-20]], [[-5,10],[-10,20]], [[-5,-10],[-10,-20]]];
+		}
+		
+		var result
+		for (var i = 0; i < boardArray.length; i++) {
+			result=false;
+			if (gameState==1){
+				if (boardArray[i][2]==1){
+					result=true;
+				}					
+			}else{
+				if (boardArray[i][2]==0){
+    				x=boardArray[i][0];
+					y=boardArray[i][1];
+					for (var j = 0; j < checkList.length; j++) {
+						if (isWhite(x+checkList[j][0][0],y+checkList[j][0][1]) && isFrom(x+checkList[j][1][0],y+checkList[j][1][1])){
+							result=true; 
+						}
+					}
+				}
+			}
+			boardArray[i][3]=result;
+		}
+	}
+		
+	function getPiecesLeft(){
+		var count=0;
+		var arrayLength = boardArray.length;	
+		for (var i = 0; i < arrayLength; i++) {
+			if (boardArray[i][2]=='1'){
+				count=count+1;
+			}
+		}
+		return count;
+	}
+	
+	function isFrom(x, y) {
+		if (x==fromPos[0] && y==fromPos[1]){
+			return true;
+		}else{
+			return false;
+		}
+	}	
+	
+	function boardIndex(x,y) {
+		result=-1;
+		for (var i = 0; i < boardArray.length; i++) {
+    		if (boardArray[i][0]==x && boardArray[i][1]==y){
+				result=i;
+				break;
+			}
+		}
+		return result; 
+	}
+	
+	function isWhite(x, y) {
+		result=false;
+		i=boardIndex(x,y);
+		if (i>-1){
+			if (boardArray[i][2]=='1'){
+				result=true;
+			}
+		}
+		return result; 
+	}
+	
+	function setBlack(x,y) {
+		i=boardIndex(x,y);
+		if (i>-1){
+			boardArray[i][2]='0';
+		}
+	}
+
+	function setWhite(x,y) {
+		i=boardIndex(x,y);
+		if (i>-1){
+			boardArray[i][2]='1';
+		}
+	}
+	
+	function isAllowed(x, y) {
+		i=boardIndex(x,y);
+		if (i>-1){
+			return boardArray[i][3];
+		}else{
+			return 'X';
+		}
+	}
+	
+	function getMat(x, y) {
+		i=boardIndex(x,y);
+		if (i>-1){
+			if (boardArray[i][2]==1){
+				return matWhite;				
+			}
+			if (boardArray[i][2]==0){
+				return matBlack;				
+			}
+		}
+		return matRed;		
+	}	
+	
+	function stopGame() {
+		var endDate = new Date();
+		var seconds = (endDate.getTime() - startDate.getTime()) / 1000;
+		var newSeconds=seconds;
+		var minutes=0;
+		while (seconds>60){
+			seconds=seconds-60;
+			minutes=minutes+1;
+		}
+		seconds=seconds.toFixed(3);
+		document.getElementById('buttonTime').textContent='time: '+minutes+'m'+seconds+'s';
+		document.getElementById('buttonStop').textContent='Start';
+		var left=document.getElementById('buttonLeft').textContent;
+		gameState=3;
+		var newLeft=Number(left.split('left')[0]);
+		var oldSeconds=Number(boardRecordSeconds);
+		var oldLeftover=Number(boardRecordLeft);
+		var gotNewRecord=false;
+		console.log(oldLeftover, newLeft);
+		console.log(oldSeconds, newSeconds);
+		console.log(gotNewRecord);
+		
+		if (oldLeftover==0 || newLeft<oldLeftover){
+			gotNewRecord=true;
+		}else{
+			if (newLeft==oldLeftover) {
+				if (newSeconds<oldSeconds){
+					gotNewRecord=true;
+				}
+			}
+		}
+		if (gotNewRecord){
+			answer = prompt ('New record!\n'+left+' in '+minutes+'m'+seconds+'s\nWhat is your name?', 'Your Name');
+			emit('savepeg', {boardName:boardName, name:answer, left:newLeft, seconds:newSeconds});
+		}else{					
+			window.location.reload(false);		
+		}
+	}	
+	
+	function Setup() {
+		if (boardIsHexagon=='False'){
+		// Square
+			var x;
+			for (x = (boardSize*-5)+5; x < (boardSize*5)+5; x=x+10) { 
+				var y;
+				for (y = (boardSize*-5)+5; y < (boardSize*5)+5; y=y+10) {
+					var t=scene.getMeshByName("sphere"+x+"_"+y);
+					if (t!=null){
+						scene.getMeshByName("sphere"+x+"_"+y).dispose();
+					}
+					var sphere = BABYLON.Mesh.CreateSphere("sphere"+x+"_"+y, 16, 8, scene);			
+					sphere.position.x = x;
+					sphere.position.y = y;
+					sphere.position.z = 0.0;
+					sphere.material=getMat(x,y);
+				}
+			}
+		}else{
+		// hexagon
+			var y;
+			var counter=0;
+			var increase=true;
+			for (y = (boardSize*-10.0)+10 ; y <=(boardSize*10.0)-10; y=y+10) {
+				var x;
+				for (x = ((boardSize-1+counter)*-10.0)/2.0 ; x <=((boardSize-1+counter)*10.0)/2.0; x=x+10) {
+					var sphere = BABYLON.Mesh.CreateSphere("sphere"+x+"_"+y, 16, 8, scene);			
+					sphere.position.x = x;
+					sphere.position.y = y;
+					sphere.position.z = 0.0;
+					sphere.material=getMat(x,y);
+				}
+				if (increase){
+					counter++;
+					if (counter>=boardSize){
+						counter--;
+						counter--;
+						increase=false;
+					}
+				} else {
+					counter--;
+				}						
+			}
+		}
+	}
+	Setup();	
+	setAllowed();
+	
+	document.getElementById("buttonStop").addEventListener("click",function () {
+		if (document.getElementById('buttonStop').textContent=='Start'){
+			window.location.reload(false); 		
+		}else{
+			stopGame();
+		}
+	})
+
+	
+    window.addEventListener("click", function () {
+		var pickResult = scene.pick(scene.pointerX, scene.pointerY);
+		if (pickResult.hit){
+			if (gameState==1)
+			{
+				fromPos=[pickResult.pickedMesh.position.x,pickResult.pickedMesh.position.y];
+				if (isAllowed(fromPos[0],fromPos[1])){
+					pickResult.pickedMesh.material=matGrey;
+					gameState=2;
+					setAllowed();
+				}
+			}else{
+				toPos=[pickResult.pickedMesh.position.x,pickResult.pickedMesh.position.y];
+				if (isAllowed(toPos[0],toPos[1])){
+					pickResult.pickedMesh.material=matWhite;
+					gameState=1;
+					setBlack(fromPos[0],fromPos[1]);
+					setWhite(toPos[0],toPos[1]);
+					var x2=(fromPos[0]+toPos[0])/2;
+					var y2=(fromPos[1]+toPos[1])/2;
+					setBlack(x2,y2);
+					scene.getMeshByName("sphere"+x2+"_"+y2).material=matBlack;
+					scene.getMeshByName("sphere"+fromPos[0]+"_"+fromPos[1]).material=matBlack;
+					setAllowed();
+					if (getPiecesLeft()==1){
+						console.log('WE GOT A WINNER!');
+						stopGame();
+					}
+				}else{
+					scene.getMeshByName("sphere"+fromPos[0]+"_"+fromPos[1]).material=matWhite;
+				}
+				gameState=1;
+				setAllowed();
+			}
+		}
+	})
+	
+    return scene;
+};
+
+            var scene = createScene();
+            
+            engine.runRenderLoop(function(){
+            	if (gameState==1 || gameState==2){
+	            	var endDate = new Date();
+					var seconds = (endDate.getTime() - startDate.getTime()) / 1000;
+					var minutes=0;
+					while (seconds>60){
+						seconds=seconds-60;
+						minutes=minutes+1;
+					}
+					document.getElementById('buttonTime').textContent='time: '+minutes+'m'+seconds.toString().split(".")[0]+'s';
+				}
+            
+            	scene.render();
+            });
+
+			window.addEventListener('resize', function(){
+                engine.resize();
+            });
+        });
+    </script>
+</body>
+</html>
