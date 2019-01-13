@@ -2,7 +2,7 @@
 
 cd /github/pegs
 docker build -t baskoning/pegs .
-docker run -ti -d -p 5000:5000 baskoning/pegs
+docker run -ti -d -p 5000:5000 -e PORT=5000 baskoning/pegs
 dockerid="$(docker ps -alq)"
 
 rm -rf stop.sh
