@@ -29,11 +29,9 @@ maxnamelen=32
 localIP='127.0.0.1'
 WANIP=''
 
-FlaskSecretKey=os.urandom(512)
-		
 # initialize Flask
 app = Flask(__name__)
-app.config['SECRET_KEY'] = FlaskSecretKey
+app.config['SECRET_KEY'] = os.urandom(512)
 socketio = SocketIO(app)
 
 def getWideIpAdres():
@@ -95,7 +93,6 @@ def readRecords(boardname):
 	with open(locationBoardFiles+boardname+'.txt', "r") as f:
 		lines=f.readlines()
 	args=json.loads(lines[0])
-	print (args['recordLeft'],args['recordSeconds'],args['recordHolder'])	
 	return (args['recordLeft'],args['recordSeconds'],args['recordHolder'])	
 
 def getRecord(strBoardName):
@@ -167,14 +164,12 @@ def app_pegboardname(boardname):
 	print (request.remote_addr,'peg', boardname)
 	if checkName(boardname) and boardname in boardNames:
 		userConnectsTo=GetConnectTo(request.remote_addr)
-		print (request.remote_addr, ' GET /peg/'+boardname)
 		lines=''
 		ls=[]
 		with open(locationBoardFiles+boardname+'.txt', "r") as f:
 			ls=f.readlines()
 		for l in ls:
 			lines=lines+str(l)
-		print(lines)
 		args=json.loads(lines)
 		
 		strVARS="""		boardName='"""+boardname+"""';
@@ -188,8 +183,6 @@ def app_pegboardname(boardname):
 		nrOfSpots=len(args['board'])/3
 		strboard=str(args['board'])
 		strboard=strboard[2:-2].split('),(')
-		print (strboard)
-		print('oh')
 		first=True
 		while counter<len(strboard):
 			thisboard=strboard[counter].split(',')
@@ -243,14 +236,8 @@ def app_favicon():
 	print (request.remote_addr, locationPrivateFiles+'/favicon.ico --> /favicon.png')
 	return send_file(locationPrivateFiles+'/favicon.png', mimetype='image/ico')
    
-@app.route('/stone.png')
-def app_stone():
-    print (request.remote_addr, locationPrivateFiles+'/stone.png --> /stone.png')
-    return send_file(locationPrivateFiles+'/stone.png', mimetype='image/png')
-
 @socketio.on('savepeg', namespace='/peglobbie')
 def on_savepeg(args):
-	print (request.sid,'on_savepeg: ', args)
 	try:
 		name=stripName(args['name'])
 		boardName=args['boardName']
@@ -273,7 +260,6 @@ def on_pegnewboard(args):
 		args2.pop('png')
 		
 		jargs=json.dumps(args2)
-		print(jargs)
 		name=stripName(args['name'])
 		png=args['png']
 		if (checkName(name)):
@@ -326,7 +312,7 @@ if __name__ == '__main__':
 	WANIP=getWideIpAdres()
 	print ()
 	print ("Peg Solitaire")
-	print ("v0.04")
+	print ("v0.05")
 	print ("localIP="+localIP)
 	print ("LANIP="+LANIP)
 	print ("WANIP="+WANIP)
@@ -335,8 +321,6 @@ if __name__ == '__main__':
 		
 	try:
 		print ('Boards:')
-		print (locationPrivateFiles+'boardnames.txt')
-
 		with open(locationPrivateFiles+'boardnames.txt', "r") as f:
 			strBoardNames=f.readlines()
 		for strBoardName in strBoardNames:

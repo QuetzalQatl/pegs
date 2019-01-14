@@ -9,4 +9,4 @@ ENV PORT="${PORT}"
 
 EXPOSE ${PORT}
 
-CMD ls && python startflask.py
+CMD python startflask.py

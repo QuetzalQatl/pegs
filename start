@@ -1,0 +1,35 @@
+#!/usr/local/bin/bash
+
+PORT=$1
+
+re='^[0-9]+$'
+if ! [[ $PORT =~ $re ]] ; then
+   PORT=5000
+fi
+
+cd /github/pegs
+docker build -t baskoning/pegs .
+docker run -ti -d -p $PORT:$PORT -e PORT=$PORT baskoning/pegs
+DOCKERID="$(docker ps -alq)"
+
+rm -rf stop
+echo '#!/usr/local/bin/bash'>> stop
+echo >> stop
+echo 'echo copying files...' >> stop
+echo 'docker cp '$DOCKERID':/boards Files/' >> stop
+echo 'docker cp '$DOCKERID':/private/boardnames.txt Files/private/boardnames.txt' >> stop
+echo 'echo stopping server...' >> stop
+echo docker stop $DOCKERID >> stop
+
+rm -rf logs
+echo '#!/usr/local/bin/bash'>> logs
+echo >> logs
+echo 'docker logs '$DOCKERID >> logs
+
+echo 'container running using port '$PORT
+echo 'To see the logs:'
+echo ' bash logs'
+echo 'To start pegs with a different port, for example 5001, use:'
+echo ' bash start 5001'
+echo 'To copy records/boards and stop pegs container:'
+echo ' bash stop'

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
-    <title>Peg Game</title>
+    <title>Peg Solitaire</title>
     <!--- Link to the last version of BabylonJS --->
     <script src="/babylon.js"></script>
     <style>
@@ -33,8 +33,6 @@
 	    var socket = io.connect('/peglobbie');
 
 		function emit(path, params) {
-			console.log('socket emit');
-			console.log(path, params);
 			socket.emit(path, params);
 		}
 		
@@ -195,9 +193,6 @@
 		var oldSeconds=Number(boardRecordSeconds);
 		var oldLeftover=Number(boardRecordLeft);
 		var gotNewRecord=false;
-		console.log(oldLeftover, newLeft);
-		console.log(oldSeconds, newSeconds);
-		console.log(gotNewRecord);
 		
 		if (oldLeftover==0 || newLeft<oldLeftover){
 			gotNewRecord=true;
@@ -298,7 +293,6 @@
 					scene.getMeshByName("sphere"+fromPos[0]+"_"+fromPos[1]).material=matBlack;
 					setAllowed();
 					if (getPiecesLeft()==1){
-						console.log('WE GOT A WINNER!');
 						stopGame();
 					}
 				}else{

@@ -45,8 +45,6 @@
 		}
 
 		function emit(path, params) {
-			console.log('socket emit');
-			console.log(path, params);
 			socket.emit(path, params);
 		}		
 				
@@ -176,16 +174,6 @@
 		if (size>0){
 			
 			saveStr='[';
-//			saveStr+=document.getElementById('inputName').value+',';
-//			if (isHexagon){
-//				saveStr+='Hexagon'+',';//type
-			//}else{
-				//saveStr+='Square'+',';//type
-			//}		
-			//saveStr+=size+',';//depth board to each side
-			//saveStr+='0,';//record nr left
-			//saveStr+='0.0,';//record seconds left
-			//saveStr+='';//recordholder
 			var start=true;
 			var foundStartPos=false;
 			if (!isHexagon){		
