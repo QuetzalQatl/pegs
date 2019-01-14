@@ -20,7 +20,7 @@ echo 'docker cp '$DOCKERID':/boards Files/' >> stop
 echo 'docker cp '$DOCKERID':/private/boardnames.txt Files/private/boardnames.txt' >> stop
 echo 'echo stopping server...' >> stop
 echo docker stop $DOCKERID >> stop
-
+ 
 rm -rf logs
 echo '#!/usr/local/bin/bash'>> logs
 echo >> logs
