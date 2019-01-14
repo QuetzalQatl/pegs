@@ -100,13 +100,11 @@ def readRecords(boardname):
 
 def getRecord(strBoardName):
 	try:
-		#with open(locationBoardFiles+strBoardName+'.txt', "r") as f:
-		#	lines=f.readlines()
-	#	lines=lines[0].split(',')
-	
-	#	return (lines[len(lines)-4].strip(), lines[len(lines)-3].strip(), lines[len(lines)-2].strip())
 		pegsleft, seconds, recordholder=boardNames[strBoardName]
-		return str(pegsleft)+' left in '+str(seconds)+' seconds by: '+recordholder
+		if pegsleft==0:
+			return recordholder # 'Nobody'
+		else:
+			return str(pegsleft)+' left in '+str(seconds)+' seconds by: '+recordholder
 	except Exception as x:
 		print(x)
 		traceback.print_exc()
@@ -117,16 +115,10 @@ def saveRecord(strBoardName, newLeft, newSeconds, newRecordholder):
 	try:
 		with open(locationBoardFiles+strBoardName+'.txt', "r") as f:
 			lines=f.readlines()
-		print('ah')
-		print(strBoardName, newLeft, newSeconds, newRecordholder)
-		print('ah')		
-		print(lines)
-		print('ah')
 		args=json.loads(lines[0])
 		newRecord=False
 		oldLeft=int(args['recordLeft'])
 		oldSeconds=float(args['recordSeconds'])
-		print(oldLeft, oldSeconds)
 		if (oldLeft==0 or oldLeft>newLeft):
 			newRecord=True
 		else:
@@ -140,8 +132,6 @@ def saveRecord(strBoardName, newLeft, newSeconds, newRecordholder):
 			boardNames[strBoardName]=(newLeft, newSeconds, newRecordholder)
 			with open(locationBoardFiles+strBoardName+'.txt', "w") as f:
 				f.write(json.dumps(args))
-			
-
 	except Exception as x:
 		print(x)
 		traceback.print_exc()	
@@ -227,8 +217,7 @@ def app_boards(boardname):
 		print('/boards/<boardname>', boardname)
 	else:
 		print('not found', '/boards/<boardname>', boardname)
-		return abort(404)
- 
+		return abort(404) 
 
 @app.route('/peggame')
 def app_peggame():
@@ -337,7 +326,7 @@ if __name__ == '__main__':
 	WANIP=getWideIpAdres()
 	print ()
 	print ("Peg Solitaire")
-	print ("v0.03")
+	print ("v0.04")
 	print ("localIP="+localIP)
 	print ("LANIP="+LANIP)
 	print ("WANIP="+WANIP)
@@ -368,4 +357,4 @@ if __name__ == '__main__':
 	except Exception as x:
 		print(x)
 		traceback.print_exc()
-	
+		
