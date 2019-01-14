@@ -1,7 +1,0 @@
-#!/usr/local/bin/bash
-
-echo copying files...
-docker cp 29e961b23461:/boards Files/
-docker cp 29e961b23461:/private/boardnames.txt Files/private/boardnames.txt
-echo stopping server...
-docker stop 29e961b23461
