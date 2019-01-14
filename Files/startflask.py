@@ -312,7 +312,7 @@ if __name__ == '__main__':
 	WANIP=getWideIpAdres()
 	print ()
 	print ("Peg Solitaire")
-	print ("v0.05")
+	print ("v0.06")
 	print ("localIP="+localIP)
 	print ("LANIP="+LANIP)
 	print ("WANIP="+WANIP)
