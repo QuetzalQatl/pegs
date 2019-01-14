@@ -24,6 +24,7 @@ echo docker stop $DOCKERID >> stop
 rm -rf logs
 echo '#!/usr/local/bin/bash'>> logs
 echo >> logs
+echo 'echo Logs for container: '$DOCKERID >> logs
 echo 'docker logs '$DOCKERID >> logs
 
 echo 'container running using port '$PORT
