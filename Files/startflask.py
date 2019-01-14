@@ -326,7 +326,6 @@ if __name__ == '__main__':
 		for strBoardName in strBoardNames:
 			if checkName(strBoardName.strip()):
 				print('ADDED: '+strBoardName.strip())	
-				
 				boardNames[strBoardName.strip()]=readRecords(strBoardName.strip())#left, seconds, recordholder
 			else:
 				if len(strBoardName.strip()):
