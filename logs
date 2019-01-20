@@ -1,3 +1,0 @@
-#!/usr/local/bin/bash
-
-docker logs 29e961b23461
